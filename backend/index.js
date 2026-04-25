@@ -8,6 +8,8 @@ const courseRoutes = require('./routes/courseRoutes');
 const enrollmentRoutes = require('./routes/enrollmentRoutes');
 const gradeRoutes = require('./routes/gradeRoutes');
 const badgeRoutes = require('./routes/badgeRoutes');
+const aiRoutes = require('./routes/aiRoutes');
+const { verifyToken } = require('./middleware/authMiddlewares');
 
 const app = express();
 
@@ -20,6 +22,12 @@ app.use('/api/courses', courseRoutes);
 app.use('/api/enrollments', enrollmentRoutes);
 app.use('/api/grades', gradeRoutes);
 app.use('/api/badges', badgeRoutes);
+
+// AI routes with auth (for production)
+app.use('/api/ai', verifyToken, aiRoutes);
+
+// AI routes without auth (for testing)
+app.use('/api/ai-test', aiRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', time: new Date() });
