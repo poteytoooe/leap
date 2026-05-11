@@ -29,6 +29,36 @@
       "role": "instructor",
       "is_active": 1,
       "date_joined": "2026-04-24T11:48:06.045Z"
+    },
+    {
+      "user_id": 4,
+      "email": "jobin@gbox.ncf.edu.ph",
+      "first_name": "justin",
+      "last_name": "obin",
+      "password_hash": "$2a$10$a5lEbgu/hYMoCAqHr6uZz.QDZLXI9sof9tSp4bC2qzgD980toI5xu",
+      "role": "student",
+      "is_active": 1,
+      "date_joined": "2026-05-10T12:24:21.606Z"
+    },
+    {
+      "user_id": 5,
+      "email": "enayawan@gbox.ncf.edu.ph",
+      "first_name": "eduardo",
+      "last_name": "nayawan",
+      "password_hash": "$2a$10$WrUMsCfQsFWwcoWCllchoOk/gfDLlG2JOckZ6pus9KUnhWCtK8gfa",
+      "role": "instructor",
+      "is_active": 1,
+      "date_joined": "2026-05-10T12:40:17.593Z"
+    },
+    {
+      "user_id": 6,
+      "email": "jdela@gbox.ncf.edu.ph",
+      "first_name": "jrom",
+      "last_name": "dela",
+      "password_hash": "$2a$10$vyweE0CmZ34ts.6w5Pe4/uVmMk9j1Jp/8RNqekuNRNcyYriGOiwfy",
+      "role": "student",
+      "is_active": 1,
+      "date_joined": "2026-05-10T19:20:12.125Z"
     }
   ],
   "courses": [

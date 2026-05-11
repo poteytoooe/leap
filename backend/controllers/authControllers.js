@@ -1,47 +1,33 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const fs = require('fs');
+const path = require('path');
 require('dotenv').config();
 
-const TEST_USERS = [
-  {
-    user_id: 1,
-    email: 'admin@leap.com',
-    password_hash: '$2a$12$mEiv1hXWJg.YIbeQ/AO8B.k1h9r6k9mTPPtPMsHhlOhhgKDkLipLC',
-    role: 'admin',
-    first_name: 'Admin',
-    last_name: 'User'
-  },
-  {
-    user_id: 2,
-    email: 'student@leap.com',
-    password_hash: '$2a$12$OKR9HTPOXAeqSsmTXc.Z9.2oZzV3bc/jBPfETaMdXYwxBFShFu9zm',
-    role: 'student',
-    first_name: 'John',
-    last_name: 'Doe'
-  },
-  {
-    user_id: 3,
-    email: 'instructor@leap.com',
-    password_hash: '$2a$12$sl5Mb3m0K1QU6ZKS2zHmHOaZ3AhUP7sGwj/t.PkNZ3XZyVigCUa4a',
-    role: 'instructor',
-    first_name: 'Jane',
-    last_name: 'Smith'
-  },
+const DB_PATH = path.join(__dirname, '../mock-db.json');
 
-  {
-  user_id: 4,
-  email: 'admin@leap.com',
-  password_hash: '$2a$12$mEiv1hXWJg.YIbeQ/AO8B.k1h9r6k9mTPPtPMsHhlOhhgKDkLipLC',
-  role: 'admin',
-  first_name: 'Admin',
-  last_name: 'User'
+const loadDB = () => {
+  try {
+    const data = fs.readFileSync(DB_PATH, 'utf-8');
+    return JSON.parse(data);
+  } catch (err) {
+    console.error('Error loading database:', err);
+    return { users: [] };
   }
-];
+};
+
+const saveDB = (db) => {
+  try {
+    fs.writeFileSync(DB_PATH, JSON.stringify(db, null, 2));
+  } catch (err) {
+    console.error('Error saving database:', err);
+  }
+};
 
 const generateToken = (user) => {
   return jwt.sign(
     { user_id: user.user_id, email: user.email, role: user.role },
-    process.env.JWT_SECRET,
+    process.env.JWT_SECRET || 'your-secret-key',
     { expiresIn: process.env.JWT_ACCESS_EXPIRATION_TIME || '12h' }
   );
 };
@@ -51,22 +37,63 @@ const register = async (req, res) => {
   if (!email || !password || !first_name || !last_name || !role) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
-  res.status(201).json({
-    message: 'Registration disabled for testing - use login instead',
-    user: { email, role }
-  });
+
+  try {
+    const db = loadDB();
+    
+    // Check if user already exists
+    if (db.users.some(u => u.email === email)) {
+      return res.status(409).json({ error: 'Email already exists' });
+    }
+
+    // Hash password
+    const salt = await bcrypt.genSalt(10);
+    const password_hash = await bcrypt.hash(password, salt);
+
+    // Create new user
+    const newUser = {
+      user_id: Math.max(...db.users.map(u => u.user_id), 0) + 1,
+      email,
+      first_name,
+      last_name,
+      password_hash,
+      role,
+      is_active: 1,
+      date_joined: new Date().toISOString()
+    };
+
+    db.users.push(newUser);
+    saveDB(db);
+
+    const token = generateToken(newUser);
+    res.status(201).json({
+      token,
+      user: {
+        user_id: newUser.user_id,
+        email: newUser.email,
+        role: newUser.role,
+        first_name: newUser.first_name,
+        last_name: newUser.last_name
+      }
+    });
+  } catch (err) {
+    console.error('Registration error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 };
 
 const login = async (req, res) => {
   const { email, password } = req.body;
-  console.log('Login attempt:', email, password);
+  console.log('Login attempt:', email);
 
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password are required' });
   }
 
   try {
-    const user = TEST_USERS.find(u => u.email === email);
+    const db = loadDB();
+    const user = db.users.find(u => u.email === email);
+    
     if (!user) {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
