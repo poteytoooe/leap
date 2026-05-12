@@ -1,4 +1,8 @@
-backend/node_modules/
-Frontend/node_modules/
-backend/.env
-Frontend/.env
+node_modules/
+.env
+.env.local
+.env.*.local
+dist/
+.vercel
+*.log
+.DS_Store
